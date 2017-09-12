@@ -1,6 +1,7 @@
 from app import app
 from app import dbFunctions
 from flask import request
+from flask import jsonify
 
 @app.route('/')
 @app.route('/index')
@@ -28,4 +29,5 @@ def deleteDbTables():
 @app.route('/users', methods=['GET'])
 def getUsers():
     data = dbFunctions.getUsers()
-    return data
+    jsonableData = list(map(lambda user: user.__dict__, data))
+    return jsonify(jsonableData)

@@ -1,4 +1,6 @@
 import psycopg2
+import psycopg2.extras
+from .models.user import User
 
 def connectAndRun(commands):
     conn = None
@@ -31,7 +33,7 @@ def connectAndRetrieve(commands):
         conn = psycopg2.connect(host="localhost", database="sustainabilitytest", user="postgres", password="SuperUser100")
 
         # create a cursor
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         for command in commands:
             cur.execute(command[0], command[1])
@@ -87,9 +89,10 @@ def getUsers():
         SELECT * FROM users
     """, []))
     data = connectAndRetrieve(commands)
-    for object in data:
-        print(object)
-    return 'OK'
+    users = []
+    for row in data:
+        users.append(User(row["username"], row["unit"], row["admin_level"]))
+    return users
 
 def deleteTables():
 

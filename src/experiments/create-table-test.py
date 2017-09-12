@@ -12,8 +12,8 @@ def create_table():
         CREATE TABLE users (
           user_id SERIAL PRIMARY KEY,
           username TEXT NOT NULL,
-          unit unit,
-          admin_level admin_level NOT NULL
+          unit TEXT,
+          admin_level TEXT NOT NULL
         )
         """
     )

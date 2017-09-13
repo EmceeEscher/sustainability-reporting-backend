@@ -51,14 +51,7 @@ def connectAndRetrieve(commands):
             print('Database connection closed.')
         return data
 
-def addUser(username, unit, adminLevel):
-
-    commands = []
-    commands.append(("""
-            INSERT INTO users (username, unit, admin_level) 
-            VALUES (%s, %s, %s)
-        """, [username, unit, adminLevel]))
-    connectAndRun(commands)
+# Initialization functions
 
 def initializeTable():
     commands = []
@@ -82,8 +75,27 @@ def initializeTypes():
         """, []))
     connectAndRun(commands)
 
-def getUsers():
+# Cleanup functions (primarily for use in testing and development, don't use on live database)
 
+def deleteTables():
+    commands = []
+    commands.append(("""
+        DROP TABLE users
+    """, []))
+    connectAndRun(commands)
+
+# User functions
+
+def addUser(username, unit, adminLevel):
+
+    commands = []
+    commands.append(("""
+            INSERT INTO users (username, unit, admin_level) 
+            VALUES (%s, %s, %s)
+        """, [username, unit, adminLevel]))
+    connectAndRun(commands)
+
+def getUsers():
     commands = []
     commands.append(("""
         SELECT * FROM users
@@ -94,10 +106,14 @@ def getUsers():
         users.append(User(row["username"], row["unit"], row["admin_level"]))
     return users
 
-def deleteTables():
-
+def getUser(userId):
     commands = []
     commands.append(("""
-        DROP TABLE users
-    """, []))
-    connectAndRun(commands)
+        SELECT * FROM users 
+        WHERE user_id = %s
+    """, userId))
+    data = connectAndRetrieve(commands)
+    userData = data[0]
+    user = User(userData["username"], userData["unit"], userData["admin_level"])
+    return user
+

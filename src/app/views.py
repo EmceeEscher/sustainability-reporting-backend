@@ -16,6 +16,17 @@ def addUserToDb():
     dbFunctions.addUser(username, unit, adminLevel)
     return 'OK'
 
+@app.route('/users', methods=['GET'])
+def getUsers():
+    data = dbFunctions.getUsers()
+    jsonableData = list(map(lambda user: user.__dict__, data))
+    return jsonify(data=jsonableData)
+
+@app.route('/users/<userId>', methods=['GET'])
+def getUser(userId):
+    data = dbFunctions.getUser(userId)
+    return jsonify(data=data.__dict__)
+
 @app.route('/tables', methods=['POST'])
 def createDbTables():
     dbFunctions.initializeTable()
@@ -25,9 +36,3 @@ def createDbTables():
 def deleteDbTables():
     dbFunctions.deleteTables()
     return 'OK'
-
-@app.route('/users', methods=['GET'])
-def getUsers():
-    data = dbFunctions.getUsers()
-    jsonableData = list(map(lambda user: user.__dict__, data))
-    return jsonify(jsonableData)

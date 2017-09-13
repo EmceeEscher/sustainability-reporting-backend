@@ -8,13 +8,21 @@ from flask import jsonify
 def index():
     return "Hello, World!"
 
+@app.route('/tables', methods=['POST'])
+def createDbTables():
+    return dbFunctions.initializeTable()
+
+@app.route('/tables', methods=['DELETE'])
+def deleteDbTables():
+    return dbFunctions.deleteTables()
+
 @app.route('/users', methods=['POST'])
-def addUserToDb():
+def addUser():
+    userId = request.args.get('userId')
     username = request.args.get('username')
     unit = request.args.get('unit')
     adminLevel = request.args.get('adminLevel')
-    dbFunctions.addUser(username, unit, adminLevel)
-    return 'OK'
+    return dbFunctions.addUser(userId, username, unit, adminLevel)
 
 @app.route('/users', methods=['GET'])
 def getUsers():
@@ -27,12 +35,9 @@ def getUser(userId):
     data = dbFunctions.getUser(userId)
     return jsonify(data=data.__dict__)
 
-@app.route('/tables', methods=['POST'])
-def createDbTables():
-    dbFunctions.initializeTable()
-    return 'OK'
-
-@app.route('/tables', methods=['DELETE'])
-def deleteDbTables():
-    dbFunctions.deleteTables()
-    return 'OK'
+@app.route('/units', methods=['POST'])
+def addUnit():
+    name = request.args.get('name')
+    description = request.args.get('description')
+    adminId = request.args.get('adminId')
+    return dbFunctions.addUnit(name, description, adminId)

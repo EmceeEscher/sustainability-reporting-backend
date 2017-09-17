@@ -1,7 +1,9 @@
 from app import app
 from app import dbFunctions
+from app import utilFunctions
 from flask import request
 from flask import jsonify
+from .exceptions.dbException import DbException
 
 @app.route('/')
 @app.route('/index')
@@ -22,7 +24,11 @@ def addUser():
     username = request.args.get('username')
     unit = request.args.get('unit')
     adminLevel = request.args.get('adminLevel')
-    return dbFunctions.addUser(userId, username, unit, adminLevel)
+    response = dbFunctions.addUser(userId, username, unit, adminLevel)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
 
 @app.route('/users', methods=['GET'])
 def getUsers():
@@ -41,3 +47,7 @@ def addUnit():
     description = request.args.get('description')
     adminId = request.args.get('adminId')
     return dbFunctions.addUnit(name, description, adminId)
+
+@app.errorhandler(DbException)
+def handle_invalid_usage(error):
+    return utilFunctions.getJsonErrrorFromSQL(error)

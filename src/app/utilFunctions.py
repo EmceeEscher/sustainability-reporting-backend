@@ -6,7 +6,9 @@ def getJsonErrrorFromSQL(sqlError):
     errorBody = {}
     errorBody['code'] = errorCodes.unknownSqlError
     errorBody['message'] = 'Unknown database error'
-
+    # The following line is only to be used for debugging. It should be commented out for production
+    # errorBody['SQL message'] = errorString
+    
     if "duplicate key value" in errorString:
         errorBody['code'] = errorCodes.duplicateKeyError
         errorBody['message'] = 'An item with that key already exists in the database'

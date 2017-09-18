@@ -45,6 +45,14 @@ def getUser(userId):
     data = dbFunctions.getUser(userId)
     return jsonify(data=data.__dict__)
 
+@app.route('/users/<userId>/units/<unitId>', methods=['PUT'])
+def addUserToUnit(userId, unitId):
+    response = dbFunctions.addUserToUnit(userId, unitId)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
 @app.route('/units', methods=['POST'])
 def addUnit():
     name = request.args.get('name')

@@ -1,6 +1,7 @@
 import psycopg2
 import psycopg2.extras
 from .models.user import User
+from .models.unit import Unit
 from .exceptions.dbException import DbException
 
 def connectAndRun(commands):
@@ -61,7 +62,6 @@ def initializeTables():
         CREATE TABLE users (
           user_id integer PRIMARY KEY,
           username text NOT NULL,
-          unit unit,
           admin_level admin_level NOT NULL
         )
         """, []))
@@ -73,15 +73,15 @@ def initializeTables():
           admin_id integer REFERENCES users (user_id)
         )
     """, []))
+    commands.append(("""
+        ALTER TABLE users ADD unit_id integer REFERENCES units (unit_id)
+    """, []))
     return connectAndRun(commands)
 
 def initializeTypes():
     commands = []
     commands.append(("""
         CREATE TYPE admin_level AS ENUM ('user', 'admin', 'superadmin')
-        """, []))
-    commands.append(("""
-        CREATE TYPE unit AS ENUM ('exampleUnit1', 'exampleUnit2')
         """, []))
     return connectAndRun(commands)
 
@@ -90,10 +90,10 @@ def initializeTypes():
 def deleteTables():
     commands = []
     commands.append(("""
-        DROP TABLE users
+        DROP TABLE users CASCADE
     """, []))
     commands.append(("""
-        DROP TABLE units
+        DROP TABLE units CASCADE
     """, []))
     return connectAndRun(commands)
 
@@ -102,7 +102,7 @@ def deleteTables():
 def addUser(userId, username, unit, adminLevel):
     commands = []
     commands.append(("""
-            INSERT INTO users (user_id, username, unit, admin_level) 
+            INSERT INTO users (user_id, username, unit_id, admin_level) 
             VALUES (%s, %s, %s, %s)
         """, [userId, username, unit, adminLevel]))
     return connectAndRun(commands)
@@ -115,7 +115,7 @@ def getUsers():
     data = connectAndRetrieve(commands)
     users = []
     for row in data:
-        users.append(User(row["username"], row["unit"], row["admin_level"]))
+        users.append(User(row["username"], row["unit_id"], row["admin_level"]))
     return users
 
 def getUser(userId):
@@ -128,8 +128,15 @@ def getUser(userId):
     if len(data) == 0:
         raise DbException("No entry found")
     userData = data[0]
-    user = User(userData["username"], userData["unit"], userData["admin_level"])
+    user = User(userData["username"], userData["unit_id"], userData["admin_level"])
     return user
+
+def addUserToUnit(userId, unitId):
+    commands = []
+    commands.append(("""
+        UPDATE users SET unit_id = %s WHERE user_id = %s
+    """, [unitId, userId]))
+    return connectAndRun(commands)
 
 # Unit functions
 
@@ -140,3 +147,14 @@ def addUnit(name, description, adminId):
         VALUES (%s, %s, %s)
     """, [name, description, adminId]))
     return connectAndRun(commands)
+
+def getUnits():
+    commands = []
+    commands.append(("""
+        SELECT * FROM units
+    """, []))
+    data = connectAndRetrieve(commands)
+    units = []
+    for row in data:
+        units.append(Unit(row["name"], row["description"], row["admin_id"]))
+    return units

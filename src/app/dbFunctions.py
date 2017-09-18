@@ -1,6 +1,7 @@
 import psycopg2
 import psycopg2.extras
 from .models.user import User
+from .exceptions.dbException import DbException
 
 def connectAndRun(commands):
     conn = None
@@ -14,7 +15,6 @@ def connectAndRun(commands):
 
         for command in commands:
             cur.execute(command[0], command[1])
-            print("command[0]: " + command[0])
 
         # close the communication with the PostgreSQL
         cur.close()
@@ -40,7 +40,6 @@ def connectAndRetrieve(commands):
 
         for command in commands:
             cur.execute(command[0], command[1])
-            print("command[0]: " + command[0])
 
         data = cur.fetchall()
         # close the communication with the PostgreSQL
@@ -56,7 +55,7 @@ def connectAndRetrieve(commands):
 
 # Initialization functions
 
-def initializeTable():
+def initializeTables():
     commands = []
     commands.append(("""
         CREATE TABLE users (
@@ -126,6 +125,8 @@ def getUser(userId):
         WHERE user_id = %s
     """, userId))
     data = connectAndRetrieve(commands)
+    if len(data) == 0:
+        raise DbException("No entry found")
     userData = data[0]
     user = User(userData["username"], userData["unit"], userData["admin_level"])
     return user

@@ -12,7 +12,11 @@ def index():
 
 @app.route('/tables', methods=['POST'])
 def createDbTables():
-    return dbFunctions.initializeTable()
+    response = dbFunctions.initializeTables()
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
 
 @app.route('/tables', methods=['DELETE'])
 def deleteDbTables():

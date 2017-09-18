@@ -1,0 +1,3 @@
+-better error handling for deleting tables
+-better error handling for creating types
+-CWL!!!!

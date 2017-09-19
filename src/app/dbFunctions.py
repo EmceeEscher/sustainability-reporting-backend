@@ -214,6 +214,19 @@ def getUnits():
         units.append(Unit(row["name"], row["description"]))
     return units
 
+def getUnit(unitId):
+    commands = []
+    commands.append(("""
+        SELECT * FROM units 
+        WHERE unit_id = %s
+    """, unitId))
+    data = connectAndRetrieve(commands)
+    if len(data) == 0:
+        raise DbException("No entry found")
+    unitData = data[0]
+    unit = Unit(unitData["name"], unitData["description"])
+    return unit
+
 def addUnitAdmin(unitId, adminId):
     commands = []
     commands.append(("""

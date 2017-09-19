@@ -78,6 +78,17 @@ def addUnit():
     description = request.args.get('description')
     return dbFunctions.addUnit(name, description)
 
+@app.route('/units', methods=['GET'])
+def getUnits():
+    data = dbFunctions.getUnits()
+    jsonableData = list(map(lambda unit: unit.__dict__, data))
+    return jsonify(data=jsonableData)
+
+@app.route('/units/<unitId>', methods=['GET'])
+def getUnit(unitId):
+    data = dbFunctions.getUnit(unitId)
+    return jsonify(data=data.__dict__)
+
 @app.route('/units/<unitId>/admins/<adminId>', methods=['POST'])
 def addAdminToUnit(unitId, adminId):
     response = dbFunctions.addUnitAdmin(unitId, adminId)

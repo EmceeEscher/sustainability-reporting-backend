@@ -25,6 +25,10 @@ def getJsonErrrorFromSQL(sqlError):
         errorBody['message'] = 'No entry with that ID exists in the database'
         httpCode = 404
 
+    if bool(re.search("null value in column .* violates not-null constraint", errorString)):
+        errorBody['code'] = errorCodes.missingValueError
+        errorBody['message'] = 'Missing required field: ' + re.search('column \"(.*)\" violates', errorString).group(1)
+
     errorWrapper = {}
     errorWrapper['error'] = errorBody
     response = jsonify(errorWrapper)

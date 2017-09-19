@@ -41,6 +41,8 @@ def deleteDbTables():
     else:
         raise DbException(response0)
 
+# user endpoints
+
 @app.route('/users', methods=['POST'])
 def addUser():
     userId = request.args.get('userId')
@@ -72,11 +74,17 @@ def addUserToUnit(userId, unitId):
     else:
         raise DbException(response)
 
+# unit endpoints
+
 @app.route('/units', methods=['POST'])
 def addUnit():
     name = request.args.get('name')
     description = request.args.get('description')
-    return dbFunctions.addUnit(name, description)
+    response = dbFunctions.addUnit(name, description)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
 
 @app.route('/units', methods=['GET'])
 def getUnits():
@@ -96,6 +104,17 @@ def addAdminToUnit(unitId, adminId):
         return response
     else:
         raise DbException(response)
+
+# action endpoints
+@app.route('/actions', methods=['POST'])
+def addAction():
+    name = request.args.get('name')
+    description = request.args.get('description')
+    stakeholderId = request.args.get('stakeholderId')
+    theme = request.args.get('theme')
+    priorityArea = request.args.get('priorityArea')
+    # TODO: actually do something
+    return 'OK'
 
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):

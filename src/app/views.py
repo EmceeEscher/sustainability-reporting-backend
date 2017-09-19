@@ -57,8 +57,7 @@ def addUserToUnit(userId, unitId):
 def addUnit():
     name = request.args.get('name')
     description = request.args.get('description')
-    adminId = request.args.get('adminId')
-    return dbFunctions.addUnit(name, description, adminId)
+    return dbFunctions.addUnit(name, description)
 
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):

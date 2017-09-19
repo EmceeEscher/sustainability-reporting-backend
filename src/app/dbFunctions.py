@@ -59,22 +59,26 @@ def connectAndRetrieve(commands):
 def initializeTables():
     commands = []
     commands.append(("""
-        CREATE TABLE users (
-          user_id integer PRIMARY KEY,
-          username text NOT NULL,
-          admin_level admin_level NOT NULL
-        )
-        """, []))
-    commands.append(("""
         CREATE TABLE units (
           unit_id serial PRIMARY KEY,
           name text NOT NULL,
-          description text,
-          admin_id integer REFERENCES users (user_id)
+          description text
         )
     """, []))
     commands.append(("""
-        ALTER TABLE users ADD unit_id integer REFERENCES units (unit_id)
+        CREATE TABLE users (
+          user_id integer PRIMARY KEY,
+          username text NOT NULL,
+          admin_level admin_level NOT NULL,
+          unit_id integer REFERENCES units (unit_id)
+        )
+        """, []))
+    commands.append(("""
+        CREATE TABLE  unit_admins (
+          admin_id integer REFERENCES users (user_id),
+          unit_id integer REFERENCES units (unit_id),
+          PRIMARY KEY(admin_id, unit_id)
+        )
     """, []))
     return connectAndRun(commands)
 
@@ -94,6 +98,9 @@ def deleteTables():
     """, []))
     commands.append(("""
         DROP TABLE units CASCADE
+    """, []))
+    commands.append(("""
+        DROP TABLE unit_admins CASCADE
     """, []))
     return connectAndRun(commands)
 
@@ -140,12 +147,12 @@ def addUserToUnit(userId, unitId):
 
 # Unit functions
 
-def addUnit(name, description, adminId):
+def addUnit(name, description):
     commands = []
     commands.append(("""
-        INSERT INTO units (name, description, admin_id)
-        VALUES (%s, %s, %s)
-    """, [name, description, adminId]))
+        INSERT INTO units (name, description)
+        VALUES (%s, %s)
+    """, [name, description]))
     return connectAndRun(commands)
 
 def getUnits():
@@ -156,5 +163,13 @@ def getUnits():
     data = connectAndRetrieve(commands)
     units = []
     for row in data:
-        units.append(Unit(row["name"], row["description"], row["admin_id"]))
+        units.append(Unit(row["name"], row["description"]))
     return units
+
+def addUnitAdmin(unitId, adminId):
+    commands = []
+    commands.append(("""
+        INSERT INTO unit_admins (admin_id, unit_id)
+        VALUES (%s, %s)
+    """, [adminId, unitId]))
+    return connectAndRun(commands)

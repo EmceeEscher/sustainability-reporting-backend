@@ -45,12 +45,27 @@ def getUser(userId):
     data = dbFunctions.getUser(userId)
     return jsonify(data=data.__dict__)
 
+@app.route('/users/<userId>/units/<unitId>', methods=['PUT'])
+def addUserToUnit(userId, unitId):
+    response = dbFunctions.addUserToUnit(userId, unitId)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
 @app.route('/units', methods=['POST'])
 def addUnit():
     name = request.args.get('name')
     description = request.args.get('description')
-    adminId = request.args.get('adminId')
-    return dbFunctions.addUnit(name, description, adminId)
+    return dbFunctions.addUnit(name, description)
+
+@app.route('/units/<unitId>/admins/<adminId>', methods=['POST'])
+def addAdminToUnit(unitId, adminId):
+    response = dbFunctions.addUnitAdmin(unitId, adminId)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
 
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):

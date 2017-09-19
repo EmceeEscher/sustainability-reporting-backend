@@ -1,6 +1,7 @@
 import psycopg2
 import psycopg2.extras
 from .models.user import User
+from .models.unit import Unit
 from .exceptions.dbException import DbException
 
 def connectAndRun(commands):
@@ -58,19 +59,25 @@ def connectAndRetrieve(commands):
 def initializeTables():
     commands = []
     commands.append(("""
-        CREATE TABLE users (
-          user_id integer PRIMARY KEY,
-          username text NOT NULL,
-          unit unit,
-          admin_level admin_level NOT NULL
-        )
-        """, []))
-    commands.append(("""
         CREATE TABLE units (
           unit_id serial PRIMARY KEY,
           name text NOT NULL,
-          description text,
-          admin_id integer REFERENCES users (user_id)
+          description text
+        )
+    """, []))
+    commands.append(("""
+        CREATE TABLE users (
+          user_id integer PRIMARY KEY,
+          username text NOT NULL,
+          admin_level admin_level NOT NULL,
+          unit_id integer REFERENCES units (unit_id)
+        )
+        """, []))
+    commands.append(("""
+        CREATE TABLE  unit_admins (
+          admin_id integer REFERENCES users (user_id),
+          unit_id integer REFERENCES units (unit_id),
+          PRIMARY KEY(admin_id, unit_id)
         )
     """, []))
     return connectAndRun(commands)
@@ -80,9 +87,6 @@ def initializeTypes():
     commands.append(("""
         CREATE TYPE admin_level AS ENUM ('user', 'admin', 'superadmin')
         """, []))
-    commands.append(("""
-        CREATE TYPE unit AS ENUM ('exampleUnit1', 'exampleUnit2')
-        """, []))
     return connectAndRun(commands)
 
 # Cleanup functions (primarily for use in testing and development, don't use on live database)
@@ -90,10 +94,13 @@ def initializeTypes():
 def deleteTables():
     commands = []
     commands.append(("""
-        DROP TABLE users
+        DROP TABLE users CASCADE
     """, []))
     commands.append(("""
-        DROP TABLE units
+        DROP TABLE units CASCADE
+    """, []))
+    commands.append(("""
+        DROP TABLE unit_admins CASCADE
     """, []))
     return connectAndRun(commands)
 
@@ -102,7 +109,7 @@ def deleteTables():
 def addUser(userId, username, unit, adminLevel):
     commands = []
     commands.append(("""
-            INSERT INTO users (user_id, username, unit, admin_level) 
+            INSERT INTO users (user_id, username, unit_id, admin_level) 
             VALUES (%s, %s, %s, %s)
         """, [userId, username, unit, adminLevel]))
     return connectAndRun(commands)
@@ -115,7 +122,7 @@ def getUsers():
     data = connectAndRetrieve(commands)
     users = []
     for row in data:
-        users.append(User(row["username"], row["unit"], row["admin_level"]))
+        users.append(User(row["username"], row["unit_id"], row["admin_level"]))
     return users
 
 def getUser(userId):
@@ -128,15 +135,46 @@ def getUser(userId):
     if len(data) == 0:
         raise DbException("No entry found")
     userData = data[0]
-    user = User(userData["username"], userData["unit"], userData["admin_level"])
+    user = User(userData["username"], userData["unit_id"], userData["admin_level"])
     return user
+
+def addUserToUnit(userId, unitId):
+    commands = []
+    commands.append(("""
+        UPDATE users SET unit_id = %s WHERE user_id = %s
+    """, [unitId, userId]))
+    return connectAndRun(commands)
 
 # Unit functions
 
-def addUnit(name, description, adminId):
+def addUnit(name, description):
     commands = []
     commands.append(("""
-        INSERT INTO units (name, description, admin_id)
-        VALUES (%s, %s, %s)
-    """, [name, description, adminId]))
+        INSERT INTO units (name, description)
+        VALUES (%s, %s)
+    """, [name, description]))
+    return connectAndRun(commands)
+
+def getUnits():
+    commands = []
+    commands.append(("""
+        SELECT * FROM units
+    """, []))
+    data = connectAndRetrieve(commands)
+    units = []
+    for row in data:
+        units.append(Unit(row["name"], row["description"]))
+    return units
+
+def addUnitAdmin(unitId, adminId):
+    commands = []
+    commands.append(("""
+        INSERT INTO unit_admins (admin_id, unit_id)
+        VALUES (%s, %s)
+    """, [adminId, unitId]))
+    commands.append(("""
+        UPDATE users 
+        SET admin_level = 'admin' 
+        WHERE user_id = %s AND admin_level != 'superadmin' AND admin_level != 'admin'
+    """, adminId))
     return connectAndRun(commands)

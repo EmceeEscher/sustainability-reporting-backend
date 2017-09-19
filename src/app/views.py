@@ -59,6 +59,14 @@ def addUnit():
     description = request.args.get('description')
     return dbFunctions.addUnit(name, description)
 
+@app.route('/units/<unitId>/admins/<adminId>', methods=['POST'])
+def addAdminToUnit(unitId, adminId):
+    response = dbFunctions.addUnitAdmin(unitId, adminId)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):
     return utilFunctions.getJsonErrrorFromSQL(error)

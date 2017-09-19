@@ -172,4 +172,9 @@ def addUnitAdmin(unitId, adminId):
         INSERT INTO unit_admins (admin_id, unit_id)
         VALUES (%s, %s)
     """, [adminId, unitId]))
+    commands.append(("""
+        UPDATE users 
+        SET admin_level = 'admin' 
+        WHERE user_id = %s AND admin_level != 'superadmin' AND admin_level != 'admin'
+    """, adminId))
     return connectAndRun(commands)

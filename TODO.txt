@@ -1,3 +1,6 @@
 -better error handling for deleting tables
 -better error handling for creating types
 -CWL!!!!
+
+Productionization:
+-hide create/delete tables/types endpoints

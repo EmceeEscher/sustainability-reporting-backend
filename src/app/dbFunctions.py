@@ -80,6 +80,31 @@ def initializeTables():
           PRIMARY KEY(admin_id, unit_id)
         )
     """, []))
+    commands.append(("""
+        CREATE TABLE actions (
+          action_id serial PRIMARY KEY,
+          name text NOT NULL,
+          description text NOT NULL,
+          stakeholder integer REFERENCES users (user_id),
+          theme theme NOT NULL,
+          priority_area priority_area NOT NULL
+        )
+    """, []))
+    return connectAndRun(commands)
+
+# only used for testing, so I don't have to delete and create new tables all the time
+def initializeNewTables():
+    commands = []
+    commands.append(("""
+        CREATE TABLE actions (
+          action_id serial PRIMARY KEY,
+          name text NOT NULL,
+          description text NOT NULL,
+          stakeholder integer REFERENCES users (user_id) NOT NULL,
+          theme theme NOT NULL,
+          priority_area priority_area NOT NULL
+        )
+    """, []))
     return connectAndRun(commands)
 
 def initializeTypes():
@@ -108,6 +133,9 @@ def deleteTables():
     """, []))
     commands.append(("""
         DROP TABLE unit_admins CASCADE
+    """, []))
+    commands.append(("""
+        DROP TABLE actions CASCADE
     """, []))
     return connectAndRun(commands)
 

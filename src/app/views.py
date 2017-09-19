@@ -10,6 +10,7 @@ from .exceptions.dbException import DbException
 def index():
     return "Hello, World!"
 
+# TODO remove all /tables endpoints before productionization
 @app.route('/tables', methods=['POST'])
 def createDbTables():
     response0 = dbFunctions.initializeTypes()
@@ -20,6 +21,14 @@ def createDbTables():
         raise DbException(response1)
     else:
         raise DbException(response0)
+
+@app.route('/tables/new', methods=['POST'])
+def createNewTables():
+    response = dbFunctions.initializeNewTables()
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
 
 @app.route('/tables', methods=['DELETE'])
 def deleteDbTables():

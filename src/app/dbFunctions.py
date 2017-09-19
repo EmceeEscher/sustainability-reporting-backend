@@ -87,6 +87,10 @@ def initializeTypes():
     commands.append(("""
         CREATE TYPE admin_level AS ENUM ('user', 'admin', 'superadmin')
         """, []))
+    commands.append(("""
+        CREATE TYPE theme AS ENUM ('Energy & Emissions', 'Materials & Waste', 'Water', 'Purchasing', 'Engagement Programs',
+        'Campus as a Living Laboratory')
+    """, []))
     return connectAndRun(commands)
 
 # Cleanup functions (primarily for use in testing and development, don't use on live database)
@@ -101,6 +105,16 @@ def deleteTables():
     """, []))
     commands.append(("""
         DROP TABLE unit_admins CASCADE
+    """, []))
+    return connectAndRun(commands)
+
+def deleteTypes():
+    commands = []
+    commands.append(("""
+        DROP TYPE admin_level CASCADE
+    """, []))
+    commands.append(("""
+        DROP TYPE theme CASCADE
     """, []))
     return connectAndRun(commands)
 

@@ -12,15 +12,25 @@ def index():
 
 @app.route('/tables', methods=['POST'])
 def createDbTables():
-    response = dbFunctions.initializeTables()
-    if response == 'OK':
-        return response
+    response0 = dbFunctions.initializeTypes()
+    response1 = dbFunctions.initializeTables()
+    if ((response1 == 'OK') and (response0 == 'OK')) :
+        return response1
+    elif (response0 == 'OK'):
+        raise DbException(response1)
     else:
-        raise DbException(response)
+        raise DbException(response0)
 
 @app.route('/tables', methods=['DELETE'])
 def deleteDbTables():
-    return dbFunctions.deleteTables()
+    response0 = dbFunctions.deleteTables()
+    response1 = dbFunctions.deleteTypes()
+    if ((response1 == 'OK') and (response0 == 'OK')) :
+        return response1
+    elif (response0 == 'OK'):
+        raise DbException(response1)
+    else:
+        raise DbException(response0)
 
 @app.route('/users', methods=['POST'])
 def addUser():

@@ -91,6 +91,9 @@ def initializeTypes():
         CREATE TYPE theme AS ENUM ('Energy & Emissions', 'Materials & Waste', 'Water', 'Purchasing', 'Engagement Programs',
         'Campus as a Living Laboratory')
     """, []))
+    commands.append(("""
+        CREATE TYPE priority_area AS ENUM ('examplePriorityArea')
+    """, []))
     return connectAndRun(commands)
 
 # Cleanup functions (primarily for use in testing and development, don't use on live database)
@@ -115,6 +118,9 @@ def deleteTypes():
     """, []))
     commands.append(("""
         DROP TYPE theme CASCADE
+    """, []))
+    commands.append(("""
+        DROP TYPE priority_area CASCADE
     """, []))
     return connectAndRun(commands)
 

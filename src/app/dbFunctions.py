@@ -2,6 +2,7 @@ import psycopg2
 import psycopg2.extras
 from .models.user import User
 from .models.unit import Unit
+from .models.action import Action
 from .exceptions.dbException import DbException
 
 def connectAndRun(commands):
@@ -83,9 +84,9 @@ def initializeTables():
     commands.append(("""
         CREATE TABLE actions (
           action_id serial PRIMARY KEY,
-          name text NOT NULL,
+          title text NOT NULL,
           description text NOT NULL,
-          stakeholder integer REFERENCES users (user_id),
+          stakeholder_id integer REFERENCES users (user_id),
           theme theme NOT NULL,
           priority_area priority_area NOT NULL
         )
@@ -98,7 +99,7 @@ def initializeNewTables():
     commands.append(("""
         CREATE TABLE actions (
           action_id serial PRIMARY KEY,
-          name text NOT NULL,
+          title text NOT NULL,
           description text NOT NULL,
           stakeholder integer REFERENCES users (user_id) NOT NULL,
           theme theme NOT NULL,
@@ -170,7 +171,7 @@ def getUsers():
     data = connectAndRetrieve(commands)
     users = []
     for row in data:
-        users.append(User(row["username"], row["unit_id"], row["admin_level"]))
+        users.append(User(row['user_id'], row['username'], row['unit_id'], row['admin_level']))
     return users
 
 def getUser(userId):
@@ -178,12 +179,12 @@ def getUser(userId):
     commands.append(("""
         SELECT * FROM users 
         WHERE user_id = %s
-    """, userId))
+    """, [userId]))
     data = connectAndRetrieve(commands)
     if len(data) == 0:
         raise DbException("No entry found")
     userData = data[0]
-    user = User(userData["username"], userData["unit_id"], userData["admin_level"])
+    user = User(userData['user_id'], userData['username'], userData['unit_id'], userData['admin_level'])
     return user
 
 def addUserToUnit(userId, unitId):
@@ -211,7 +212,7 @@ def getUnits():
     data = connectAndRetrieve(commands)
     units = []
     for row in data:
-        units.append(Unit(row["name"], row["description"]))
+        units.append(Unit(row['unit_id'], row['name'], row['description']))
     return units
 
 def getUnit(unitId):
@@ -219,12 +220,12 @@ def getUnit(unitId):
     commands.append(("""
         SELECT * FROM units 
         WHERE unit_id = %s
-    """, unitId))
+    """, [unitId]))
     data = connectAndRetrieve(commands)
     if len(data) == 0:
         raise DbException("No entry found")
     unitData = data[0]
-    unit = Unit(unitData["name"], unitData["description"])
+    unit = Unit(unitData['unit_id'], unitData['name'], unitData['description'])
     return unit
 
 def addUnitAdmin(unitId, adminId):
@@ -239,3 +240,49 @@ def addUnitAdmin(unitId, adminId):
         WHERE user_id = %s AND admin_level != 'superadmin' AND admin_level != 'admin'
     """, adminId))
     return connectAndRun(commands)
+
+# Action functions
+
+def addAction(title, description, stakeholderId, theme, priorityArea):
+    commands = []
+    commands.append(("""
+        INSERT INTO actions (title, description, stakeholder_id, theme, priority_area)
+        VALUES (%s, %s, %s, %s, %s) 
+    """, [title, description, stakeholderId, theme, priorityArea]))
+    return connectAndRun(commands)
+
+def getActions():
+    commands = []
+    commands.append(("""
+        SELECT * FROM actions
+    """, []))
+    data = connectAndRetrieve(commands)
+    actions = []
+    for row in data:
+        actions.append(Action(
+            row['action_id'],
+            row['title'],
+            row['description'],
+            row['stakeholder_id'],
+            row['theme'],
+            row['priority_area']))
+    return actions
+
+def getAction(actionId):
+    commands = []
+    commands.append(("""
+        SELECT * FROM actions
+        WHERE action_id = %s
+    """, [actionId]))
+    data = connectAndRetrieve(commands)
+    if len(data) == 0:
+        raise DbException("No entry found")
+    actionData = data[0]
+    action = Action(
+        actionData['action_id'],
+        actionData['title'],
+        actionData['description'],
+        actionData['stakeholder_id'],
+        actionData['theme'],
+        actionData['priority_area'])
+    return action

@@ -108,13 +108,27 @@ def addAdminToUnit(unitId, adminId):
 # action endpoints
 @app.route('/actions', methods=['POST'])
 def addAction():
-    name = request.args.get('name')
+    title = request.args.get('title')
     description = request.args.get('description')
     stakeholderId = request.args.get('stakeholderId')
     theme = request.args.get('theme')
     priorityArea = request.args.get('priorityArea')
-    # TODO: actually do something
-    return 'OK'
+    response = dbFunctions.addAction(title, description, stakeholderId, theme, priorityArea)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
+@app.route('/actions', methods=['GET'])
+def getActions():
+    data = dbFunctions.getActions()
+    jsonableData = list(map(lambda action: action.__dict__, data))
+    return jsonify(data=jsonableData)
+
+@app.route('/actions/<actionId>', methods=['GET'])
+def getAction(actionId):
+    data = dbFunctions.getAction(actionId)
+    return jsonify(data=data.__dict__)
 
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):

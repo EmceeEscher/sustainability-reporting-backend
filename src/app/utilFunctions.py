@@ -29,6 +29,10 @@ def getJsonErrrorFromSQL(sqlError):
         errorBody['code'] = errorCodes.missingValueError
         errorBody['message'] = 'Missing required field: ' + re.search('column \"(.*)\" violates', errorString).group(1)
 
+    if bool(re.search("invalid input value for enum", errorString)):
+        errorBody['code'] = errorCodes.invalidValueError
+        errorBody['message'] = 'Invalid input value for field: ' +re.search('enum (.*):', errorString).group(1)
+
     errorWrapper = {}
     errorWrapper['error'] = errorBody
     response = jsonify(errorWrapper)

@@ -2,5 +2,8 @@
 -better error handling for creating types
 -CWL!!!!
 
+NEXT TIME:
+-fix bug with finding important actions
+
 Productionization:
 -hide create/delete tables/types endpoints

@@ -91,19 +91,23 @@ def initializeTables():
           priority_area priority_area NOT NULL
         )
     """, []))
+    commands.append(("""
+        CREATE TABLE user_important_actions (
+          user_id integer REFERENCES users (user_id),
+          action_id integer REFERENCES actions (action_id),
+          PRIMARY KEY(user_id, action_id)
+        )
+    """, []))
     return connectAndRun(commands)
 
 # only used for testing, so I don't have to delete and create new tables all the time
 def initializeNewTables():
     commands = []
     commands.append(("""
-        CREATE TABLE actions (
-          action_id serial PRIMARY KEY,
-          title text NOT NULL,
-          description text NOT NULL,
-          stakeholder integer REFERENCES users (user_id) NOT NULL,
-          theme theme NOT NULL,
-          priority_area priority_area NOT NULL
+        CREATE TABLE user_important_actions (
+          user_id integer REFERENCES users (user_id),
+          action_id integer REFERENCES actions (action_id),
+          PRIMARY KEY(user_id, action_id)
         )
     """, []))
     return connectAndRun(commands)
@@ -137,6 +141,9 @@ def deleteTables():
     """, []))
     commands.append(("""
         DROP TABLE actions CASCADE
+    """, []))
+    commands.append(("""
+        DROP TABLE user_important_actions CASCADE
     """, []))
     return connectAndRun(commands)
 
@@ -286,3 +293,43 @@ def getAction(actionId):
         actionData['theme'],
         actionData['priority_area'])
     return action
+
+def addImportantAction(userId, actionId):
+    commands = []
+    commands.append(("""
+        INSERT INTO user_important_actions (user_id, action_id)
+        VALUES (%s, %s)
+    """, [userId, actionId]))
+    return connectAndRun(commands)
+
+def getImportantActionsByUser(userId):
+    commands = []
+    commands.append(("""
+        SELECT action_id FROM user_important_actions
+        WHERE user_id = %s
+    """, [userId]))
+    relationData = connectAndRun(commands)
+
+    if len(relationData) == 0:
+        raise DbException("No entry found")
+
+    commands = []
+    for actionId in relationData:
+        print("actionId: ")
+        print(actionId)
+        commands.append(("""
+            SELECT * FROM actions
+            WHERE action_id = %s
+        """, [actionId]))
+    data = connectAndRetrieve(commands)
+
+    actions = []
+    for row in data:
+        actions.append(Action(
+            row['action_id'],
+            row['title'],
+            row['description'],
+            row['stakeholder_id'],
+            row['theme'],
+            row['priority_area']))
+    return actions

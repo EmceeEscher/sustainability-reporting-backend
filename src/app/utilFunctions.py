@@ -31,7 +31,7 @@ def getJsonErrrorFromSQL(sqlError):
 
     if bool(re.search("invalid input value for enum", errorString)):
         errorBody['code'] = errorCodes.invalidValueError
-        errorBody['message'] = 'Invalid input value for field: ' +re.search('enum (.*):', errorString).group(1)
+        errorBody['message'] = 'Invalid input value for field: ' + re.search('enum (.*):', errorString).group(1)
 
     errorWrapper = {}
     errorWrapper['error'] = errorBody

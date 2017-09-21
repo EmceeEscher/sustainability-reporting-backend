@@ -5,6 +5,6 @@ class Action:
         self.actionId = actionId
         self.title = title
         self.description = description
-        self.stakeholder = stakeholderId
+        self.stakeholderId = stakeholderId
         self.theme = theme
         self.priorityArea = priorityArea

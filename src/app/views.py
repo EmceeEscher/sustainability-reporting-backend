@@ -80,6 +80,22 @@ def getImportantActionsByUser(userId):
     jsonableData = list(map(lambda action: action.__dict__, data))
     return jsonify(data=jsonableData)
 
+@app.route('/users/<userId>/actions/<actionId>', methods=['POST'])
+def addImportantActionToUser(userId, actionId):
+    response = dbFunctions.addImportantAction(userId, actionId)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
+@app.route('/users/<userId>/actions/<actionId>', methods=['DELETE'])
+def removeImportantActionFromUser(userId, actionId):
+    response = dbFunctions.removeImportantAction(userId, actionId)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
 # unit endpoints
 
 @app.route('/units', methods=['POST'])
@@ -135,14 +151,6 @@ def getActions():
 def getAction(actionId):
     data = dbFunctions.getAction(actionId)
     return jsonify(data=data.__dict__)
-
-@app.route('/actions/<actionId>/users/<userId>', methods=['POST'])
-def addImportantActionToUser(actionId, userId):
-    response = dbFunctions.addImportantAction(userId, actionId)
-    if response == 'OK':
-        return response
-    else:
-        raise DbException(response)
 
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):

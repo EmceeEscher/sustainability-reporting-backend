@@ -83,7 +83,7 @@ def initializeTables():
     """, []))
     commands.append(("""
         CREATE TABLE actions (
-          action_id serial PRIMARY KEY,
+          action_id serial integer PRIMARY KEY,
           title text NOT NULL,
           description text NOT NULL,
           stakeholder_id integer REFERENCES users (user_id),
@@ -302,21 +302,28 @@ def addImportantAction(userId, actionId):
     """, [userId, actionId]))
     return connectAndRun(commands)
 
+def removeImportantAction(userId, actionId):
+    commands = []
+    commands.append(("""
+        DELETE FROM user_important_actions
+        WHERE user_id = %s AND action_id = %s
+    """, [userId, actionId]))
+    return connectAndRun(commands)
+
 def getImportantActionsByUser(userId):
     commands = []
     commands.append(("""
         SELECT action_id FROM user_important_actions
         WHERE user_id = %s
     """, [userId]))
-    relationData = connectAndRun(commands)
+    relationData = connectAndRetrieve(commands)
 
     if len(relationData) == 0:
         raise DbException("No entry found")
 
     commands = []
-    for actionId in relationData:
-        print("actionId: ")
-        print(actionId)
+    for row in relationData:
+        actionId = row['action_id']
         commands.append(("""
             SELECT * FROM actions
             WHERE action_id = %s

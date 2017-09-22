@@ -3,7 +3,7 @@
 -CWL!!!!
 
 NEXT TIME:
--fix bug with finding important actions
+-try and cause errors with metric endpoints
 
 Productionization:
 -hide create/delete tables/types endpoints

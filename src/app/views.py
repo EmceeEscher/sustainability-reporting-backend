@@ -152,6 +152,45 @@ def getAction(actionId):
     data = dbFunctions.getAction(actionId)
     return jsonify(data=data.__dict__)
 
+# metric endpoints
+@app.route('/metrics', methods=['POST'])
+def addMetric():
+    title = request.args.get('title')
+    description = request.args.get('description')
+    stakeholderId = request.args.get('stakeholderId')
+    approvalStatus = request.args.get('approvalStatus')
+    value = request.args.get('value')
+    textValue = request.args.get('textValue')
+    response = dbFunctions.addMetric(title, description, stakeholderId, approvalStatus, textValue, value)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
+@app.route('/metrics', methods=['GET'])
+def getMetrics():
+    data = dbFunctions.getMetrics()
+    jsonableData = list(map(lambda metric: metric.__dict__, data))
+    return jsonify(data=jsonableData)
+
+@app.route('/metrics/<metricId>', methods=['GET'])
+def getMetric(metricId):
+    data = dbFunctions.getMetric(metricId)
+    return jsonify(data=data.__dict__)
+
+@app.route('/metrics/<metricId>', methods=['PATCH'])
+def updateMetric(metricId):
+    newValue = request.args.get('value')
+    newDescription = request.args.get('description')
+    newStakeholderId = request.args.get('stakeholderId')
+    newApprovalStatus = request.args.get('approvalStatus')
+    newTextValue = request.args.get('textValue')
+    response = dbFunctions.updateMetric(metricId, newValue, newTextValue, newDescription, newStakeholderId, newApprovalStatus)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):
     return utilFunctions.getJsonErrrorFromSQL(error)

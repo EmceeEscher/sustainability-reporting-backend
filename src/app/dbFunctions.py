@@ -3,6 +3,7 @@ import psycopg2.extras
 from .models.user import User
 from .models.unit import Unit
 from .models.action import Action
+from .models.metric import Metric
 from .exceptions.dbException import DbException
 
 def connectAndRun(commands):
@@ -83,7 +84,7 @@ def initializeTables():
     """, []))
     commands.append(("""
         CREATE TABLE actions (
-          action_id serial integer PRIMARY KEY,
+          action_id serial PRIMARY KEY,
           title text NOT NULL,
           description text NOT NULL,
           stakeholder_id integer REFERENCES users (user_id),
@@ -98,16 +99,35 @@ def initializeTables():
           PRIMARY KEY(user_id, action_id)
         )
     """, []))
+    # description is either a description (for qualitative data) or the units for the value (for quantitative data)
+    commands.append(("""
+        CREATE TABLE metrics (
+          metric_id serial PRIMARY KEY,
+          title text NOT NULL,
+          value numeric,
+          text_value text NOT NULL,
+          description text NOT NULL,
+          stakeholder_id integer REFERENCES users (user_id),
+          approval_status approval_status NOT NULL
+        )
+    """, []))
     return connectAndRun(commands)
 
 # only used for testing, so I don't have to delete and create new tables all the time
 def initializeNewTables():
     commands = []
     commands.append(("""
-        CREATE TABLE user_important_actions (
-          user_id integer REFERENCES users (user_id),
-          action_id integer REFERENCES actions (action_id),
-          PRIMARY KEY(user_id, action_id)
+        DROP TABLE metrics CASCADE
+    """, []))
+    commands.append(("""
+        CREATE TABLE metrics (
+          metric_id serial PRIMARY KEY,
+          title text NOT NULL,
+          value numeric,
+          text_value text NOT NULL,
+          description text NOT NULL,
+          stakeholder_id integer REFERENCES users (user_id),
+          approval_status approval_status NOT NULL
         )
     """, []))
     return connectAndRun(commands)
@@ -123,6 +143,9 @@ def initializeTypes():
     """, []))
     commands.append(("""
         CREATE TYPE priority_area AS ENUM ('examplePriorityArea')
+    """, []))
+    commands.append(("""
+        CREATE TYPE approval_status AS ENUM ('under review', 'approved', 'closed', 'in progress')
     """, []))
     return connectAndRun(commands)
 
@@ -145,6 +168,9 @@ def deleteTables():
     commands.append(("""
         DROP TABLE user_important_actions CASCADE
     """, []))
+    commands.append(("""
+        DROP TABLE metrics CASCADE
+    """, []))
     return connectAndRun(commands)
 
 def deleteTypes():
@@ -157,6 +183,9 @@ def deleteTypes():
     """, []))
     commands.append(("""
         DROP TYPE priority_area CASCADE
+    """, []))
+    commands.append(("""
+        DROP TYPE approval_status CASCADE
     """, []))
     return connectAndRun(commands)
 
@@ -340,3 +369,67 @@ def getImportantActionsByUser(userId):
             row['theme'],
             row['priority_area']))
     return actions
+
+# Metrics functions
+
+def addMetric(title, description, stakeholderId, approvalStatus, textValue, value):
+    smallApprovalStatus = approvalStatus.lower()
+    commands = []
+    commands.append(("""
+        INSERT INTO metrics (title, value, text_value, description, stakeholder_id, approval_status)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, [title, value, textValue, description, stakeholderId, smallApprovalStatus]))
+    return connectAndRun(commands)
+
+def getMetrics():
+    commands = []
+    commands.append(("""
+        SELECT * FROM metrics
+    """, []))
+    data = connectAndRetrieve(commands)
+    metrics = []
+    for row in data:
+        metrics.append(Metric(
+            row['metric_id'],
+            row['title'],
+            row['description'],
+            row['stakeholder_id'],
+            row['approval_status'],
+            str(row['value']), # need to do this cast to string, because Python JSON can't encode Decimals
+            row['text_value']
+        ))
+    return metrics
+
+def getMetric(metricId):
+    commands = []
+    commands.append(("""
+        SELECT * FROM metrics
+        WHERE metric_id = %s
+    """, [metricId]))
+    data = connectAndRetrieve(commands)
+    if len(data) == 0:
+        raise DbException("No entry found")
+    metricData = data[0]
+    metric = Metric(
+        metricData['metric_id'],
+        metricData['title'],
+        metricData['description'],
+        metricData['stakeholder_id'],
+        metricData['approval_status'],
+        str(metricData['value']), # need to do this cast to string, because Python JSON can't encode Decimals
+        metricData['text_value']
+    )
+    return metric
+
+def updateMetric(metricId, newValue, newTextValue, newDescription, newStakeholderId, newApprovalStatus):
+    commands = []
+    commands.append(("""
+        UPDATE metrics SET 
+          value = COALESCE(%s, value),
+          text_value = COALESCE(%s, text_value),
+          description = COALESCE(%s, description),
+          stakeholder_id = COALESCE(%s, stakeholder_id),
+          approval_status = COALESCE(%s, approval_status)
+        WHERE metric_id = %s
+    """, [newValue, newTextValue, newDescription, newStakeholderId, newApprovalStatus, metricId]))
+    return connectAndRun(commands)

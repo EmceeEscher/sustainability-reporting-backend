@@ -4,6 +4,7 @@ from .models.user import User
 from .models.unit import Unit
 from .models.action import Action
 from .models.metric import Metric
+from .models.starsCredit import StarsCredit
 from .exceptions.dbException import DbException
 
 def connectAndRun(commands):
@@ -99,7 +100,7 @@ def initializeTables():
           PRIMARY KEY(user_id, action_id)
         )
     """, []))
-    # description is either a description (for qualitative data) or the units for the value (for quantitative data)
+    # text_value is either a qualitative value or the units for the numerical value (for quantitative data)
     commands.append(("""
         CREATE TABLE metrics (
           metric_id serial PRIMARY KEY,
@@ -111,23 +112,27 @@ def initializeTables():
           approval_status approval_status NOT NULL
         )
     """, []))
+    commands.append(("""
+        CREATE TABLE stars_credits (
+          credit_id text NOT NULL,
+          approval_status approval_status NOT NULL,
+          year date NOT NULL,
+          action_id integer REFERENCES actions (action_id) NOT NULL,
+          PRIMARY KEY (action_id)
+        )
+    """, []))
     return connectAndRun(commands)
 
 # only used for testing, so I don't have to delete and create new tables all the time
 def initializeNewTables():
     commands = []
     commands.append(("""
-        DROP TABLE metrics CASCADE
-    """, []))
-    commands.append(("""
-        CREATE TABLE metrics (
-          metric_id serial PRIMARY KEY,
-          title text NOT NULL,
-          value numeric,
-          text_value text NOT NULL,
-          description text NOT NULL,
-          stakeholder_id integer REFERENCES users (user_id),
-          approval_status approval_status NOT NULL
+        CREATE TABLE stars_credits (
+          credit_id text NOT NULL,
+          approval_status approval_status NOT NULL,
+          year date NOT NULL,
+          action_id integer REFERENCES actions (action_id) NOT NULL,
+          PRIMARY KEY (action_id)
         )
     """, []))
     return connectAndRun(commands)
@@ -170,6 +175,9 @@ def deleteTables():
     """, []))
     commands.append(("""
         DROP TABLE metrics CASCADE
+    """, []))
+    commands.append(("""
+        DROP TABLE stars_credits CASCADE
     """, []))
     return connectAndRun(commands)
 
@@ -433,3 +441,57 @@ def updateMetric(metricId, newValue, newTextValue, newDescription, newStakeholde
         WHERE metric_id = %s
     """, [newValue, newTextValue, newDescription, newStakeholderId, newApprovalStatus, metricId]))
     return connectAndRun(commands)
+
+# STARS credits functions
+
+def addStarsCredit(title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, year):
+    # TODO: check validity of STARS data before entering item in action table and/or
+    # TODO:     find a way to remove item from action table if there is an error in the STARS insert
+    # TODO:     (right now it leaves an orphan action entry)
+    commands = []
+    commands.append(("""
+        INSERT INTO actions (title, description, stakeholder_id, theme, priority_area)
+        VALUES (%s, %s, %s, %s, %s) 
+        RETURNING action_id
+    """, [title, description, stakeholderId, theme, priorityArea]))
+    actionData = connectAndRetrieve(commands)
+    if len(actionData) == 0:
+        raise DbException("Insertion error")
+    actionId = actionData[0]['action_id']
+    commands = []
+    commands.append(("""
+        INSERT INTO stars_credits (credit_id, approval_status, year, action_id)
+        VALUES (%s, %s, %s, %s)
+    """, [creditId, approvalStatus, year, actionId]))
+    return connectAndRun(commands)
+
+def getStarsCredits():
+    commands = []
+    commands.append(("""
+        SELECT * FROM stars_credits
+    """, []))
+    data = connectAndRetrieve(commands)
+    starsCredits = []
+    for row in data:
+        actionId = row['action_id']
+        commands = []
+        commands.append(("""
+            SELECT * FROM actions
+            WHERE action_id = %s
+        """, [actionId]))
+        actionData = connectAndRetrieve(commands)
+        if len(actionData) == 0:
+            raise DbException("missing paired action")
+        starsAction = actionData[0]
+        starsCredits.append(StarsCredit(
+            starsAction['action_id'],
+            starsAction['title'],
+            starsAction['description'],
+            starsAction['stakeholder_id'],
+            starsAction['theme'],
+            starsAction['priority_area'],
+            row['credit_id'],
+            row['approval_status'],
+            row['year']
+        ))
+    return starsCredits

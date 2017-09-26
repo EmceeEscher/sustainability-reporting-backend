@@ -128,6 +128,7 @@ def addAdminToUnit(unitId, adminId):
         raise DbException(response)
 
 # action endpoints
+
 @app.route('/actions', methods=['POST'])
 def addAction():
     title = request.args.get('title')
@@ -153,6 +154,7 @@ def getAction(actionId):
     return jsonify(data=data.__dict__)
 
 # metric endpoints
+
 @app.route('/metrics', methods=['POST'])
 def addMetric():
     title = request.args.get('title')
@@ -190,6 +192,30 @@ def updateMetric(metricId):
         return response
     else:
         raise DbException(response)
+
+# STARS endpoints
+
+@app.route('/stars', methods=['POST'])
+def addStarsCredit():
+    title = request.args.get('title')
+    description = request.args.get('description')
+    stakeholderId = request.args.get('stakeholderId')
+    theme = request.args.get('theme')
+    priorityArea = request.args.get('priorityArea')
+    creditId = request.args.get('creditId')
+    approvalStatus = request.args.get('approvalStatus')
+    year = request.args.get('year')
+    response = dbFunctions.addStarsCredit(title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, year)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
+@app.route('/stars', methods=['GET'])
+def getStarsCredits():
+    data = dbFunctions.getStarsCredits()
+    jsonableData = list(map(lambda starsCredit: starsCredit.__dict__, data))
+    return jsonify(data=jsonableData)
 
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):

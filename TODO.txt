@@ -1,6 +1,11 @@
 -better error handling for deleting tables
 -better error handling for creating types
 -CWL!!!!
+-write docs for endpoints...
+-write docs for schema...
+-handle error for "Insertion error" (in addStarsCredit)
+-handle error for "missing paired action" (in getStarsCredits)
+-handle case where action is inserted successfully, but stars credit isn't
 
 NEXT TIME:
 -try and cause errors with metric endpoints

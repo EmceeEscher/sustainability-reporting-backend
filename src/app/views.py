@@ -204,8 +204,8 @@ def addStarsCredit():
     priorityArea = request.args.get('priorityArea')
     creditId = request.args.get('creditId')
     approvalStatus = request.args.get('approvalStatus')
-    year = request.args.get('year')
-    response = dbFunctions.addStarsCredit(title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, year)
+    date = request.args.get('date')
+    response = dbFunctions.addStarsCredit(title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, date)
     if response == 'OK':
         return response
     else:
@@ -216,6 +216,11 @@ def getStarsCredits():
     data = dbFunctions.getStarsCredits()
     jsonableData = list(map(lambda starsCredit: starsCredit.__dict__, data))
     return jsonify(data=jsonableData)
+
+@app.route('/stars/<actionId>', methods=['GET'])
+def getStarsCredit(actionId):
+    data = dbFunctions.getStarsCredit(actionId)
+    return jsonify(data=data.__dict__)
 
 @app.errorhandler(DbException)
 def handle_invalid_usage(error):

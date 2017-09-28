@@ -116,7 +116,7 @@ def initializeTables():
         CREATE TABLE stars_credits (
           credit_id text NOT NULL,
           approval_status approval_status NOT NULL,
-          year date NOT NULL,
+          date date NOT NULL,
           action_id integer REFERENCES actions (action_id) NOT NULL,
           PRIMARY KEY (action_id)
         )
@@ -127,10 +127,13 @@ def initializeTables():
 def initializeNewTables():
     commands = []
     commands.append(("""
+        DROP TABLE stars_credits CASCADE
+    """, []))
+    commands.append(("""
         CREATE TABLE stars_credits (
           credit_id text NOT NULL,
           approval_status approval_status NOT NULL,
-          year date NOT NULL,
+          date date NOT NULL,
           action_id integer REFERENCES actions (action_id) NOT NULL,
           PRIMARY KEY (action_id)
         )
@@ -444,7 +447,7 @@ def updateMetric(metricId, newValue, newTextValue, newDescription, newStakeholde
 
 # STARS credits functions
 
-def addStarsCredit(title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, year):
+def addStarsCredit(title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, date):
     commands = []
     commands.append(("""
         WITH first_insert AS (
@@ -452,9 +455,9 @@ def addStarsCredit(title, description, stakeholderId, theme, priorityArea, credi
           VALUES (%s, %s, %s, %s, %s) 
           RETURNING action_id
         )
-        INSERT INTO stars_credits (credit_id, approval_status, year, action_id)
+        INSERT INTO stars_credits (credit_id, approval_status, date, action_id)
         VALUES (%s, %s, %s, (SELECT action_id FROM first_insert))
-    """, [title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, year]))
+    """, [title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, date]))
     return connectAndRun(commands)
 
 def getStarsCredits():
@@ -484,6 +487,37 @@ def getStarsCredits():
             starsAction['priority_area'],
             row['credit_id'],
             row['approval_status'],
-            row['year']
+            row['date']
         ))
     return starsCredits
+
+def getStarsCredit(actionId):
+    commands = []
+    commands.append(("""
+        SELECT * FROM actions
+        WHERE action_id = %s
+    """, [actionId]))
+    actionData = connectAndRetrieve(commands)
+    if len(actionData) == 0:
+        raise DbException("No entry found")
+    commands = []
+    commands.append(("""
+        SELECT * FROM stars_credits
+        WHERE action_id = %s
+    """, [actionId]))
+    starsData = connectAndRetrieve(commands)
+    if len(starsData) == 0:
+        raise DbException("No entry found")
+    action = actionData[0]
+    starsCredit = starsData[0]
+    return StarsCredit(
+        action['action_id'],
+        action['title'],
+        action['description'],
+        action['stakeholder_id'],
+        action['theme'],
+        action['priority_area'],
+        starsCredit['credit_id'],
+        starsCredit['approval_status'],
+        starsCredit['date']
+    )

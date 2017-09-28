@@ -445,24 +445,16 @@ def updateMetric(metricId, newValue, newTextValue, newDescription, newStakeholde
 # STARS credits functions
 
 def addStarsCredit(title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, year):
-    # TODO: check validity of STARS data before entering item in action table and/or
-    # TODO:     find a way to remove item from action table if there is an error in the STARS insert
-    # TODO:     (right now it leaves an orphan action entry)
     commands = []
     commands.append(("""
-        INSERT INTO actions (title, description, stakeholder_id, theme, priority_area)
-        VALUES (%s, %s, %s, %s, %s) 
-        RETURNING action_id
-    """, [title, description, stakeholderId, theme, priorityArea]))
-    actionData = connectAndRetrieve(commands)
-    if len(actionData) == 0:
-        raise DbException("Insertion error")
-    actionId = actionData[0]['action_id']
-    commands = []
-    commands.append(("""
+        WITH first_insert AS (
+          INSERT INTO actions (title, description, stakeholder_id, theme, priority_area)
+          VALUES (%s, %s, %s, %s, %s) 
+          RETURNING action_id
+        )
         INSERT INTO stars_credits (credit_id, approval_status, year, action_id)
-        VALUES (%s, %s, %s, %s)
-    """, [creditId, approvalStatus, year, actionId]))
+        VALUES (%s, %s, %s, (SELECT action_id FROM first_insert))
+    """, [title, description, stakeholderId, theme, priorityArea, creditId, approvalStatus, year]))
     return connectAndRun(commands)
 
 def getStarsCredits():

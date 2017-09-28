@@ -33,6 +33,11 @@ def getJsonErrrorFromSQL(sqlError):
         errorBody['code'] = errorCodes.invalidValueError
         errorBody['message'] = 'Invalid input value for field: ' + re.search('enum (.*):', errorString).group(1)
 
+    if bool(re.search("missing paired action", errorString)):
+        errorBody['code'] = errorCodes.missingParentEntryError
+        errorBody['message'] = 'This entry is missing its associated parent entry'
+        httpCode = 404
+
     errorWrapper = {}
     errorWrapper['error'] = errorBody
     response = jsonify(errorWrapper)

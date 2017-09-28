@@ -1,0 +1,226 @@
+swagger: '2.0'
+info:
+  description: >-
+    This is the documentation for the API to interact with the Sustainability
+    Reporting Program back-end. Only meant to be used by the front-end of the
+    Sustainability Reporting Program.
+  version: 0.1.0
+  title: Sustainability Reporting Program
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: brunette.jacob18@gmail.com
+host: petstore.swagger.io
+basePath: /
+tags:
+  - name: users
+    description: Operations involving users
+  - name: units
+    description: Operations involving units
+  - name: actions
+    description: Operations involving actions
+  - name: STARS credits
+    description: Operations involving STARS credits
+  - name: metrics
+    description: Operations involving metrics
+schemes:
+  - http
+paths:
+  /users:
+    post:
+      tags:
+        - users
+      summary: Add a new user to the database
+      description: ''
+      operationId: addUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: User object that needs to be added to the database
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '400':
+          description: Invalid input
+    get:
+      tags:
+        - users
+      summary: Get a list of all users
+      description: ''
+      operationId: getUsers
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+  '/users/{userId}':
+    get:
+      tags:
+        - users
+      summary: Get the data for the specified user
+      description: ''
+      operationId: getUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user to return
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/User'
+        '404':
+          description: invalid user ID
+  '/users/{userId}/units/{unitId}':
+    put:
+      tags:
+        - users
+      summary: Switch the given user's unit to the given unit
+      description: ''
+      operationId: addUserToUnit
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user to switch to unit
+          required: true
+          type: integer
+          format: int64
+        - name: unitId
+          in: path
+          description: ID of unit to have user added
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+  '/users/{userId}/actions':
+    get:
+      tags:
+        - users
+      summary: Get the important actions for the given users
+      description: ''
+      operationId: getImportantActionsForUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user to switch to unit
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Action'
+securityDefinitions:
+  petstore_auth:
+    type: oauth2
+    authorizationUrl: 'http://petstore.swagger.io/oauth/dialog'
+    flow: implicit
+    scopes:
+      'write:pets': modify pets in your account
+      'read:pets': read your pets
+  api_key:
+    type: apiKey
+    name: api_key
+    in: header
+definitions:
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      username:
+        type: string
+      unit:
+        $ref: '#/definitions/Unit'
+      adminLevel:
+        $ref: '#/definitions/AdminLevel'
+  AdminLevel:
+    type: string
+    enum:
+      - user
+      - admin
+      - superadmin
+  Unit:
+    type: object
+    required:
+      - unitId
+      - name
+    properties:
+      unitId:
+        type: integer
+        format: int64
+      name:
+        type: string
+        example: Engineering
+      description:
+        type: string
+        example: They build stuff and create pollution
+  Action:
+    type: object
+    required:
+      - actionId
+      - title
+      - description
+      - stakeholderId
+    properties:
+      actionId:
+        type: integer
+        format: int64
+      title:
+        type: string
+        example: Do the things
+      description:
+        type: string
+        example: We need to do everything on the checklist for reasons.
+      stakeholderId:
+        type: integer
+        format: int64
+        description: The userId for the user responsible for overseeing this action
+      theme:
+        $ref: '#/definitions/Theme'
+      priorityArea:
+        $ref: '#/definitions/PriorityArea'
+  Theme:
+    type: string
+    enum:
+      - Energy & Emissions
+      - Materials & Waste
+      - Water
+      - Purchasing
+      - Engagement Programs
+      - Campus as a Living Laboratory
+  PriorityArea:
+    type: string
+    enum:
+      - examplePriorityArea

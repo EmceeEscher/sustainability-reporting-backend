@@ -153,6 +153,20 @@ def getAction(actionId):
     data = dbFunctions.getAction(actionId)
     return jsonify(data=data.__dict__)
 
+@app.route('/actions/<actionId>/metrics', methods=['GET'])
+def getMetricsForAction(actionId):
+    data = dbFunctions.getMetricsForAction(actionId)
+    jsonableData = list(map(lambda metric: metric.__dict__, data))
+    return jsonify(data=jsonableData)
+
+@app.route('/actions/<actionId>/metrics/<metricId>', methods=['POST'])
+def addMetricToAction(actionId, metricId):
+    response = dbFunctions.addMetricToAction(metricId, actionId)
+    if response == 'OK':
+        return response
+    else:
+        raise DbException(response)
+
 # metric endpoints
 
 @app.route('/metrics', methods=['POST'])

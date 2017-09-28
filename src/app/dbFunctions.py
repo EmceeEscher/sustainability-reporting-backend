@@ -121,21 +121,23 @@ def initializeTables():
           PRIMARY KEY (action_id)
         )
     """, []))
+    commands.append(("""
+        CREATE TABLE action_metrics (
+          action_id integer REFERENCES actions (action_id),
+          metric_id integer REFERENCES metrics (metric_id),
+          PRIMARY KEY(action_id, metric_id)
+        )
+    """, []))
     return connectAndRun(commands)
 
 # only used for testing, so I don't have to delete and create new tables all the time
 def initializeNewTables():
     commands = []
     commands.append(("""
-        DROP TABLE stars_credits CASCADE
-    """, []))
-    commands.append(("""
-        CREATE TABLE stars_credits (
-          credit_id text NOT NULL,
-          approval_status approval_status NOT NULL,
-          date date NOT NULL,
-          action_id integer REFERENCES actions (action_id) NOT NULL,
-          PRIMARY KEY (action_id)
+        CREATE TABLE action_metrics (
+          action_id integer REFERENCES actions (action_id),
+          metric_id integer REFERENCES metrics (metric_id),
+          PRIMARY KEY(action_id, metric_id)
         )
     """, []))
     return connectAndRun(commands)
@@ -181,6 +183,9 @@ def deleteTables():
     """, []))
     commands.append(("""
         DROP TABLE stars_credits CASCADE
+    """, []))
+    commands.append(("""
+        DROP TABLE action_metrics CASCADE
     """, []))
     return connectAndRun(commands)
 
@@ -380,6 +385,47 @@ def getImportantActionsByUser(userId):
             row['theme'],
             row['priority_area']))
     return actions
+
+def addMetricToAction(metricId, actionId):
+    commands = []
+    commands.append(("""
+        INSERT INTO action_metrics (metric_id, action_id)
+        VALUES (%s, %s)
+    """, [metricId, actionId]))
+    return connectAndRun(commands)
+
+def getMetricsForAction(actionId):
+    commands = []
+    commands.append(("""
+        SELECT metric_id FROM action_metrics
+        WHERE action_id = %s 
+    """, [actionId]))
+    relationData = connectAndRetrieve(commands)
+
+    if len(relationData) == 0:
+        raise DbException("No entry found")
+
+    commands = []
+    for row in relationData:
+        metricId = row['metric_id']
+        commands.append(("""
+            SELECT * FROM metrics
+            WHERE metric_id = %s
+        """, [metricId]))
+    data = connectAndRetrieve(commands)
+
+    metrics = []
+    for row in data:
+        metrics.append(Metric(
+            row['metric_id'],
+            row['title'],
+            row['description'],
+            row['stakeholder_id'],
+            row['approval_status'],
+            str(row['value']), # need to do this cast to string, because Python JSON can't encode Decimals
+            row['text_value']
+        ))
+    return metrics
 
 # Metrics functions
 

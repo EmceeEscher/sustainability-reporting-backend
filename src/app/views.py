@@ -127,6 +127,11 @@ def addAdminToUnit(unitId, adminId):
     else:
         raise DbException(response)
 
+@app.route('/units/<unitId>/admins', methods=['GET'])
+def getAdminForUnit(unitId):
+    data = dbFunctions.getAdminForUnit(unitId)
+    return jsonify(data=data.__dict__)
+
 # action endpoints
 
 @app.route('/actions', methods=['POST'])

@@ -293,6 +293,28 @@ def addUnitAdmin(unitId, adminId):
     """, adminId))
     return connectAndRun(commands)
 
+def getAdminForUnit(unitId):
+    commands = []
+    commands.append(("""
+        SELECT admin_id FROM unit_admins
+        WHERE unit_id = %s
+    """, [unitId]))
+    adminData = connectAndRetrieve(commands)
+    if len(adminData) == 0:
+        raise DbException("No entry found")
+    userId = adminData[0]['admin_id']
+    commands = []
+    commands.append(("""
+        SELECT * FROM users
+        WHERE user_id = %s
+    """, [userId]))
+    userData = connectAndRetrieve(commands)
+    if len(userData) == 0:
+        raise DbException("No entry found")
+    userData = userData[0]
+    user = User(userData['user_id'], userData['username'], userData['unit_id'], userData['admin_level'])
+    return user
+
 # Action functions
 
 def addAction(title, description, stakeholderId, theme, priorityArea):

@@ -125,7 +125,7 @@ paths:
       parameters:
         - name: userId
           in: path
-          description: ID of user to switch to unit
+          description: ID of user to get important actions for
           required: true
           type: integer
           format: int64
@@ -140,6 +140,176 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Action'
+  '/users/{userId}/actions/{actionId}':
+    post:
+      tags:
+        - users
+      summary: Mark the given action as an important action for the given user
+      description: ''
+      operationId: addImportantActionForUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user to add important action to
+          required: true
+          type: integer
+          format: int64
+        - name: actionId
+          in: path
+          description: ID of action to add as important action
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+    delete:
+      tags:
+        - users
+      summary: Mark the given action as no longer an important action for the given user
+      description: ''
+      operationId: removeImportantActionsFromUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user to remove important action from
+          required: true
+          type: integer
+          format: int64
+        - name: actionId
+          in: path
+          description: ID of action to remove as important action
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+  '/units':
+    post:
+      tags:
+        - units
+      summary: Add a new unit to the database
+      description: ''
+      operationId: addUnit
+      parameters:
+        - name: name
+          in: body
+          description: name of unit to add to database
+          required: true
+          type: string
+        - name: description
+          in: body
+          description: description of unit to add to database
+          required: false
+          type: string
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+    get:
+      tags:
+        - units
+      summary: get all the units currently in the database
+      description: ''
+      operationId: getUnits
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Unit'
+  '/units/{unitId}':
+    get:
+      tags:
+        - units
+      summary: Get the data for the specified unit
+      description: ''
+      operationId: getUnit
+      parameters:
+        - name: unitId
+          in: path
+          description: ID of unit to return
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Unit'
+        '404':
+          description: invalid unit ID
+  '/units/{unitId}/admins/{adminId}':
+    post:
+      tags:
+        - units
+      summary: Designate the specified user as the admin for the given unit
+      description: ''
+      operationId: addAdminToUnit
+      parameters:
+        - name: unitId
+          in: path
+          description: ID of unit to add admin to
+          required: true
+          type: integer
+          format: int64
+        - name: adminId
+          in: path
+          description: ID of user to designate as admin
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+  '/units/{unitId}/admins':
+    get:
+      tags:
+        - units
+      summary: Get the admin for the specified unit
+      description: ''
+      operationId: getAdminForUnit
+      parameters:
+        - name: unitId
+          in: path
+          description: ID of unit to get admin for
+          required: true
+          type: integer
+          format: int64
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: "#/definitions/User"
 securityDefinitions:
   petstore_auth:
     type: oauth2

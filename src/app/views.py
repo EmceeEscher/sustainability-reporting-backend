@@ -4,6 +4,9 @@ from app import utilFunctions
 from flask import request
 from flask import jsonify
 from .exceptions.dbException import DbException
+from .crossdomain import crossdomain
+
+CORS_URL_BASE = 'http://localhost:3000'
 
 @app.route('/')
 @app.route('/index')
@@ -148,6 +151,7 @@ def addAction():
         raise DbException(response)
 
 @app.route('/actions', methods=['GET'])
+@crossdomain(CORS_URL_BASE)
 def getActions():
     data = dbFunctions.getActions()
     jsonableData = list(map(lambda action: action.__dict__, data))

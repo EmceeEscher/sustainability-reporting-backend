@@ -1,8 +1,16 @@
--better error handling for deleting tables
--better error handling for creating types
--CWL!!!!
--write docs for endpoints...
--write docs for schema...
+-better error handling for deleting tables (incomplete)
+-better error handling for creating types (incomplete)
+-CWL!!!! (blocked by IT)
+-write docs for endpoints... (partially complete)
+-write docs for schema... (incomplete...)
+
+10/23:
+
+-rename 'stakeholder_id' in actions table to 'assignee_id' (incomplete)
+-create scripts to populate tables with test data (incomplete)
+
 
 Productionization:
 -hide create/delete tables/types endpoints
+
+

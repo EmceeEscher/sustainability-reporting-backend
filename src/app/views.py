@@ -77,9 +77,16 @@ def addUserToUnit(userId, unitId):
     else:
         raise DbException(response)
 
-@app.route('/users/<userId>/actions', methods=['GET'])
+@app.route('/users/<userId>/importantActions', methods=['GET'])
 def getImportantActionsByUser(userId):
     data = dbFunctions.getImportantActionsByUser(userId)
+    jsonableData = list(map(lambda action: action.__dict__, data))
+    return jsonify(data=jsonableData)
+
+@app.route('/users/<userId>/actions', methods=['GET'])
+@crossdomain(CORS_URL_BASE)
+def getActionsByAssignedUser(userId):
+    data = dbFunctions.getActionsByAssignee(userId)
     jsonableData = list(map(lambda action: action.__dict__, data))
     return jsonify(data=jsonableData)
 

@@ -408,6 +408,25 @@ def getImportantActionsByUser(userId):
             row['priority_area']))
     return actions
 
+def getActionsByAssignee(assigneeId):
+    commands = []
+    commands.append(("""
+        SELECT * FROM actions
+        WHERE stakeholder_id = %s
+    """, [assigneeId]))
+    data = connectAndRetrieve(commands)
+
+    actions = []
+    for row in data:
+        actions.append(Action(
+            row['action_id'],
+            row['title'],
+            row['description'],
+            row['stakeholder_id'],
+            row['theme'],
+            row['priority_area']))
+    return actions
+
 def addMetricToAction(metricId, actionId):
     commands = []
     commands.append(("""

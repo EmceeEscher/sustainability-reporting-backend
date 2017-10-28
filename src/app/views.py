@@ -170,6 +170,7 @@ def getAction(actionId):
     return jsonify(data=data.__dict__)
 
 @app.route('/actions/<actionId>/metrics', methods=['GET'])
+@crossdomain(CORS_URL_BASE)
 def getMetricsForAction(actionId):
     data = dbFunctions.getMetricsForAction(actionId)
     jsonableData = list(map(lambda metric: metric.__dict__, data))

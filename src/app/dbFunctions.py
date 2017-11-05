@@ -395,6 +395,7 @@ def getImportantActionsByUser(userId):
             SELECT * FROM actions
             WHERE action_id = %s
         """, [actionId]))
+        # TODO: fix/test this bug (use ANY, plus array of action_ids
     data = connectAndRetrieve(commands)
 
     actions = []
@@ -447,12 +448,14 @@ def getMetricsForAction(actionId):
         raise DbException("No entry found")
 
     commands = []
+    metricIds = []
     for row in relationData:
-        metricId = row['metric_id']
-        commands.append(("""
-            SELECT * FROM metrics
-            WHERE metric_id = %s
-        """, [metricId]))
+        metricIds.append(row['metric_id'])
+
+    commands.append(("""
+        SELECT * FROM metrics
+        WHERE metric_id = ANY(%s)
+    """, [metricIds]))
     data = connectAndRetrieve(commands)
 
     metrics = []

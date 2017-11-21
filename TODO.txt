@@ -9,6 +9,12 @@
 -rename 'stakeholder_id' in actions table to 'assignee_id' (incomplete)
 -create scripts to populate tables with test data (incomplete)
 
+11/4:
+
+-fix bug in getting importantActions (I don't remember what this is....)
+
+-add way to edit metrics
+
 
 Productionization:
 -hide create/delete tables/types endpoints

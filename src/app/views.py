@@ -78,6 +78,7 @@ def addUserToUnit(userId, unitId):
         raise DbException(response)
 
 @app.route('/users/<userId>/importantActions', methods=['GET'])
+@crossdomain(CORS_URL_BASE)
 def getImportantActionsByUser(userId):
     data = dbFunctions.getImportantActionsByUser(userId)
     jsonableData = list(map(lambda action: action.__dict__, data))
@@ -90,7 +91,7 @@ def getActionsByAssignedUser(userId):
     jsonableData = list(map(lambda action: action.__dict__, data))
     return jsonify(data=jsonableData)
 
-@app.route('/users/<userId>/actions/<actionId>', methods=['POST'])
+@app.route('/users/<userId>/importantActions/<actionId>', methods=['POST'])
 def addImportantActionToUser(userId, actionId):
     response = dbFunctions.addImportantAction(userId, actionId)
     if response == 'OK':
@@ -98,7 +99,7 @@ def addImportantActionToUser(userId, actionId):
     else:
         raise DbException(response)
 
-@app.route('/users/<userId>/actions/<actionId>', methods=['DELETE'])
+@app.route('/users/<userId>/importantActions/<actionId>', methods=['DELETE'])
 def removeImportantActionFromUser(userId, actionId):
     response = dbFunctions.removeImportantAction(userId, actionId)
     if response == 'OK':

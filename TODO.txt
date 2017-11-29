@@ -9,9 +9,12 @@
 -rename 'stakeholder_id' in actions table to 'assignee_id' (incomplete)
 -create scripts to populate tables with test data (incomplete)
 
-11/4:
+11/28:
 
--fix bug in getting importantActions (I don't remember what this is....)
+-Fix star bug: after initial load, or after change made in important action panel (not all action panel),
+star does not properly fill in. Switching tabs fixes it. Clicking it also fixes it (with apparently no ill effects
+beyond error message in console)
+-Fix tab bug: when removing all important actions from a tab, the tab doesn't go away
 
 -add way to edit metrics
 

@@ -81,7 +81,7 @@ def addUserToUnit(userId, unitId):
 @crossdomain(CORS_URL_BASE)
 def getImportantActionsByUser(userId):
     data = dbFunctions.getImportantActionsByUser(userId)
-    jsonableData = list(map(lambda action: action.__dict__, data))
+    jsonableData = data
     return jsonify(data=jsonableData)
 
 @app.route('/users/<userId>/actions', methods=['GET'])
@@ -92,6 +92,7 @@ def getActionsByAssignedUser(userId):
     return jsonify(data=jsonableData)
 
 @app.route('/users/<userId>/importantActions/<actionId>', methods=['POST'])
+@crossdomain(CORS_URL_BASE)
 def addImportantActionToUser(userId, actionId):
     response = dbFunctions.addImportantAction(userId, actionId)
     if response == 'OK':
@@ -100,12 +101,19 @@ def addImportantActionToUser(userId, actionId):
         raise DbException(response)
 
 @app.route('/users/<userId>/importantActions/<actionId>', methods=['DELETE'])
+@crossdomain(CORS_URL_BASE)
 def removeImportantActionFromUser(userId, actionId):
     response = dbFunctions.removeImportantAction(userId, actionId)
     if response == 'OK':
         return response
     else:
         raise DbException(response)
+
+@app.route('/users/<userId>/importantActions/<actionId>', methods=['OPTIONS'])
+@crossdomain(CORS_URL_BASE)
+def importantActionOptionsFiller(userId, actionId):
+    return 'OK'
+#needed to allow POST/DELETE requests over CORS
 
 # unit endpoints
 

@@ -388,25 +388,22 @@ def getImportantActionsByUser(userId):
     if len(relationData) == 0:
         raise DbException("No entry found")
 
-    commands = []
+    actionIds = []
     for row in relationData:
-        actionId = row['action_id']
-        commands.append(("""
-            SELECT * FROM actions
-            WHERE action_id = %s
-        """, [actionId]))
-        # TODO: fix/test this bug (use ANY, plus array of action_ids
+        actionIds.append(row['action_id'])
+
+    commands = []
+
+    commands.append(("""
+        SELECT * FROM actions
+        WHERE action_id = ANY(%s)
+    """, [actionIds]))
+
     data = connectAndRetrieve(commands)
 
     actions = []
     for row in data:
-        actions.append(Action(
-            row['action_id'],
-            row['title'],
-            row['description'],
-            row['stakeholder_id'],
-            row['theme'],
-            row['priority_area']))
+        actions.append(row['action_id'])
     return actions
 
 def getActionsByAssignee(assigneeId):
